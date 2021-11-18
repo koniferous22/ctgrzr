@@ -1,0 +1,4 @@
+#!/usr/bin/sh
+executable="$(dirname $0)/../ctgrzr/main.py"
+python3 $executable $@
+
