@@ -9,6 +9,7 @@ from .logger import get_logger
 
 
 def validate_operations_config(operations_config):
+    get_logger().info("Validating operations config")
     if len(operations_config) < MINIMAL_OPERATIONS_CONFIG_SIZE:
         raise AppException(
             f'Operations config, expected minimum "{MINIMAL_OPERATIONS_CONFIG_SIZE}" keys in the config'
@@ -28,6 +29,7 @@ MINIMAL_OPERATIONS_CONFIG_SIZE = 2
 
 
 def load_operations_config(operations_path, *, validate_expected_keys=None):
+    get_logger().info(f'Loading operations config from "{operations_path}"')
     operations_config = None
     if not operations_path.exists():
         raise AppException(f'Operations config "{operations_path}" does not exist')

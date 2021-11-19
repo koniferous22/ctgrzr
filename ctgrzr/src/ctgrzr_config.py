@@ -11,6 +11,7 @@ EMPTY_CTGRZR_CONFIG = {}
 
 
 def validate_config(config):
+    get_logger().info("Validating configuration")
     for category, paths in config.items():
         locations = Counter(paths)
         duplicate_locations = [loc for loc, cnt in locations.items() if cnt > 1]
@@ -22,12 +23,14 @@ def validate_config(config):
 
 
 def serialize_config(config):
+    get_logger().info("Serializing configuration")
     for category, paths in config.items():
         config[category] = [str(path) for path in paths]
     return config
 
 
 def deserialize_config(config):
+    get_logger().info("Deserializing configuration")
     for category, paths in config.items():
         config[category] = [to_absolute_path(Path(path)) for path in paths]
     return config
@@ -62,6 +65,9 @@ def save_config(config_path, config):
 
 
 def add_path(config, path, categories, force):
+    get_logger().info(
+        f'Adding path "{path}" to config - categories {", ".join(categories)}'
+    )
     for category in categories:
         if category not in config:
             config[category] = []
@@ -74,11 +80,12 @@ def add_path(config, path, categories, force):
                 raise AppException(
                     f'Path "{path}" already present in category "{category}"'
                 )
-        config[category].append(str(path))
+        config[category].append(path)
     return config
 
 
 def remove_path(config, path, categories):
+    get_logger().info(f'Removing path "{path}" from categories {", ".join(categories)}')
     non_existing_categories = [
         category for category in categories if category not in config
     ]
@@ -90,3 +97,22 @@ def remove_path(config, path, categories):
     for category in categories:
         config[category] = [entry for entry in config[category] if entry != path]
     return config
+
+
+def transform_config_by_path(config):
+    config_entries_by_paths = [
+        (path, category) for category, paths in config.items() for path in paths
+    ]
+    config_by_path = {}
+    for path, category in config_entries_by_paths:
+        if path not in config_by_path:
+            config_by_path[path] = []
+        config_by_path[path].append(category)
+    return config_by_path
+
+
+def get_paths_from_config(config):
+    all_paths = set()
+    for category, paths in config.items():
+        all_paths |= set(paths)
+    return all_paths
