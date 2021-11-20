@@ -12,8 +12,7 @@ from ctgrzr.src.logger import get_logger, set_logging_level
 from ctgrzr.src.operation import run_command
 from ctgrzr.src.symlinks import search_symlinks_in_directory
 
-set_logging_level(logging.DEBUG)
-# NOTE change back to CRITICAL
+set_logging_level(logging.CRITICAL)
 
 
 class CtgrzrTest(unittest.TestCase):
