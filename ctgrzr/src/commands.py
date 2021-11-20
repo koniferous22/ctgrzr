@@ -27,7 +27,9 @@ def add(config, path, categories, *, force=False, allow_symlink=False):
         raise AppException(f'Path "{path}" should be regular file or directory')
 
     if not allow_symlink and path.is_symlink():
-        raise AppException(f'Path "{path}" cannot be a symlink, otherwise run with "-s" option' )
+        raise AppException(
+            f'Path "{path}" cannot be a symlink, otherwise run with "-s" option'
+        )
     config = add_path(config, path, categories, force)
     return 0, True
 
@@ -127,7 +129,7 @@ def validate(config, categories):
     get_logger().info('Running "validate" command')
     validation_errors = []
     if not categories:
-        get_logger().info('No categories specified, assuming all')
+        get_logger().info("No categories specified, assuming all")
         categories = list(config.keys())
     for category, paths in config.items():
         if category not in categories:

@@ -89,7 +89,9 @@ def get_arg_parser():
         "paths", nargs="*", help="Root path(s), defaults to $PWD if skipped"
     )
     parser_remove = subparsers.add_parser("remove", help="Removes tag from repo")
-    parser_remove.add_argument('-f', '--force', action='store_true', help='No error if path is not found')
+    parser_remove.add_argument(
+        "-f", "--force", action="store_true", help="No error if path is not found"
+    )
     parser_remove.add_argument("path", help="Path")
     parser_remove.add_argument("categories", help="categories", nargs="*")
     parser_search_symlinks = subparsers.add_parser(
@@ -128,7 +130,9 @@ def cli(args):
         if template_config_path == config_path:
             raise AppException("Config and template config path cannot be same")
         template_config = load_config(template_config_path)
-        cli_result, should_write_config = autoadd(config, template_config, force=args.force, allow_symlinks=args.symlinks)
+        cli_result, should_write_config = autoadd(
+            config, template_config, force=args.force, allow_symlinks=args.symlinks
+        )
     elif args.command == "interactive":
         is_possible_overwrite_due_to_existing_config = (
             config_path.exists()
@@ -167,7 +171,9 @@ def cli(args):
             )
     elif args.command == "remove":
         path = to_absolute_path(Path(args.path))
-        cli_result, should_write_config = remove(config, path, args.categories, force=args.force)
+        cli_result, should_write_config = remove(
+            config, path, args.categories, force=args.force
+        )
     elif args.command == "search-symlinks":
         cli_result, should_write_config = search_symlinks(
             config, interactive=args.interactive, should_use_logger=False
@@ -179,4 +185,3 @@ def cli(args):
     if should_write_config:
         save_config(config_path, config)
     return cli_result
-

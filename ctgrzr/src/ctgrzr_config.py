@@ -94,9 +94,13 @@ def remove_path(config, path, categories, force):
             f'Categories {", ".join(non_existing_categories)} don\'t exist'
         )
     categories = categories if categories is not None else config.keys()
-    not_found_categories = [ category for category in categories if path not in config[category]]
+    not_found_categories = [
+        category for category in categories if path not in config[category]
+    ]
     if (not force) and not_found_categories:
-        raise AppException(f'Path "{path}" not found in categories {", ".join(categories)}')
+        raise AppException(
+            f'Path "{path}" not found in categories {", ".join(categories)}'
+        )
     for category in categories:
         config[category] = [entry for entry in config[category] if entry != path]
     return config
