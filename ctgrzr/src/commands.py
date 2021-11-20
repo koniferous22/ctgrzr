@@ -17,7 +17,7 @@ from .logger import get_logger
 from .operation import run_command
 
 
-def add(config, path, categories, *, force=False):
+def add(config, path, categories, *, force=False, allow_symlink=False):
     get_logger().info('Running "add" command')
     if not categories:
         raise AppException("No category specified")
@@ -25,17 +25,20 @@ def add(config, path, categories, *, force=False):
         raise AppException(f'Path "{path}" does not exist')
     if not (path.is_file() or path.is_dir()):
         raise AppException(f'Path "{path}" should be regular file or directory')
+
+    if not allow_symlink and path.is_symlink():
+        raise AppException(f'Path "{path}" cannot be a symlink, otherwise run with "-s" option' )
     config = add_path(config, path, categories, force)
     return 0, True
 
 
-def autoadd(config, template_config):
+def autoadd(config, template_config, *, force=False, allow_symlinks=False):
     get_logger().info('Running "autoadd" command')
     template_config_by_path = transform_config_by_path(template_config)
     for path, categories in template_config_by_path.items():
-        should_add = path.exists() and (path.is_file or path.is_dir())
+        should_add = path.exists() and (path.is_file() or path.is_dir())
         if should_add:
-            add(config, path, categories)
+            add(config, path, categories, force=force, allow_symlink=allow_symlinks)
     return 0, True
 
 
@@ -89,16 +92,16 @@ def interactive(
         else:
             raise AppException(f'Invalid operation "{dq_operation}"')
     if processed_items == 0:
-        print("No items were actually processed")
+        get_logger().warning("No items were actually processed")
 
     return 0, True
 
 
-def remove(config, path, categories):
+def remove(config, path, categories, *, force=False):
     get_logger().info('Running "remove" command')
     if not categories:
         raise AppException("No category specified")
-    config = remove_path(config, path, categories)
+    config = remove_path(config, path, categories, force)
     return 0, True
 
 
@@ -123,7 +126,9 @@ def search_symlinks(config, *, interactive, should_use_logger):
 def validate(config, categories):
     get_logger().info('Running "validate" command')
     validation_errors = []
-    categories = categories if categories is not None else config.keys()
+    if not categories:
+        get_logger().info('No categories specified, assuming all')
+        categories = list(config.keys())
     for category, paths in config.items():
         if category not in categories:
             continue
@@ -132,7 +137,7 @@ def validate(config, categories):
                 validation_errors.append(
                     f'Category "{category}" - Path "{path}" does not exist'
                 )
-            if not (path.is_file() and path.is_dir()):
+            if not (path.is_file() or path.is_dir()):
                 validation_errors.append(
                     f'Category "{category}" - Path "{path}" should be regular file or directory'
                 )

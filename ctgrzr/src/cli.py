@@ -28,23 +28,32 @@ def get_arg_parser():
     verbosity_group.add_argument("-q", "--quiet", action="store_true", help="quiet")
     subparsers = parser.add_subparsers(title="commands", dest="command", required=True)
     parser_add = subparsers.add_parser("add", help="Add path to category")
-    parser_add.add_argument("path", help="Path")
-    parser_add.add_argument("categories", help="Categories", nargs="+")
     parser_add.add_argument(
         "-f", "--force", help="Overwrite if exists", action="store_true"
     )
+    parser_add.add_argument(
+        "-s", "--symlink", help="Allow symlink", action="store_true"
+    )
+    parser_add.add_argument("path", help="Path")
+    parser_add.add_argument("categories", help="Categories", nargs="+")
     parser_apply = subparsers.add_parser(
         "apply", help="Applies operations, by definfed YAML file"
     )
     parser_apply.add_argument(
-        "operations", help="File containing yaml definitions of operations to apply"
+        "-s", "--strict", action="store_true", help="Fails on 1st failed operation"
     )
     parser_apply.add_argument(
-        "-s", "--strict", action="store_true", help="Fails on 1st failed operation"
+        "operations", help="File containing yaml definitions of operations to apply"
     )
     parser_autoadd = subparsers.add_parser(
         "autoadd",
         help="Automatically replicates categorization from another config file",
+    )
+    parser_autoadd.add_argument(
+        "-f", "--force", help="Overwrite if exists", action="store_true"
+    )
+    parser_autoadd.add_argument(
+        "-s", "--symlinks", help="Allow symlinks", action="store_true"
     )
     parser_autoadd.add_argument(
         "template", help="Template config file (same as for -c option"
@@ -80,6 +89,7 @@ def get_arg_parser():
         "paths", nargs="*", help="Root path(s), defaults to $PWD if skipped"
     )
     parser_remove = subparsers.add_parser("remove", help="Removes tag from repo")
+    parser_remove.add_argument('-f', '--force', action='store_true', help='No error if path is not found')
     parser_remove.add_argument("path", help="Path")
     parser_remove.add_argument("categories", help="categories", nargs="*")
     parser_search_symlinks = subparsers.add_parser(
@@ -103,7 +113,7 @@ def cli(args):
     if args.command == "add":
         path = to_absolute_path(Path(args.path))
         cli_result, should_write_config = add(
-            config, path, args.categories, force=args.force
+            config, path, args.categories, force=args.force, allow_symlink=args.symlink
         )
     elif args.command == "apply":
         operations_config = load_operations_config(
@@ -114,11 +124,11 @@ def cli(args):
             config, operations_config, strict=args.strict
         )
     elif args.command == "autoadd":
-        tempalte_config_path = args.template
-        if tempalte_config_path == config_path:
+        template_config_path = to_absolute_path(Path(args.template))
+        if template_config_path == config_path:
             raise AppException("Config and template config path cannot be same")
-        template_config = load_config(config_path)
-        cli_result, should_write_config = autoadd(config, template_config)
+        template_config = load_config(template_config_path)
+        cli_result, should_write_config = autoadd(config, template_config, force=args.force, allow_symlinks=args.symlinks)
     elif args.command == "interactive":
         is_possible_overwrite_due_to_existing_config = (
             config_path.exists()
@@ -157,7 +167,7 @@ def cli(args):
             )
     elif args.command == "remove":
         path = to_absolute_path(Path(args.path))
-        cli_result, should_write_config = remove(config, path, args.categories)
+        cli_result, should_write_config = remove(config, path, args.categories, force=args.force)
     elif args.command == "search-symlinks":
         cli_result, should_write_config = search_symlinks(
             config, interactive=args.interactive, should_use_logger=False
@@ -170,5 +180,3 @@ def cli(args):
         save_config(config_path, config)
     return cli_result
 
-
-# TODO test everything except "interactive"

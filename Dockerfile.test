@@ -1,0 +1,12 @@
+FROM python:alpine
+
+# Inspiration: https://github.com/alpine-docker/git/blob/master/Dockerfile
+RUN pip install inquirerpy pyyaml
+
+COPY . /ctgrzr
+RUN chmod +x /ctgrzr/bin/ctgrzr
+ENV PATH="/ctgrzr/bin:${PATH}"
+ENV PYTHONPATH="/ctgrzr"
+
+WORKDIR /ctgrzr/ctgrzr/test
+CMD [ "python3", "test.py" ]

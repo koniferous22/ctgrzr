@@ -4,7 +4,7 @@ from .logger import get_logger
 
 
 def to_absolute_path(p):
-    return p.expanduser().resolve()
+    return p.expanduser().absolute()
 
 
 def validate_writable_directory(directory_path):
